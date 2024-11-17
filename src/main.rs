@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use git2::build::CheckoutBuilder;
 use git2::{Error, FetchOptions, RemoteCallbacks, Repository};
 use serde::Deserialize;
 use std::fmt::write;
@@ -85,8 +86,11 @@ fn pull(repo_path: &str, branch: &str) -> Result<(), Error> {
         let mut branch = repo.find_branch(branch, git2::BranchType::Local)?;
         let mut branch_ref = branch.into_reference();
         branch_ref.set_target(fetch_commit.id(), "Fast Forward")?;
-        repo.set_head(branch_ref.name().unwrap())?;
-        repo.checkout_head(None)?;
+        // force the checkout of a new version
+        let mut checkout = CheckoutBuilder::new();
+        // force the overwrite of all files
+        checkout.force();
+        repo.checkout_head(Some(&mut checkout))?;
         Ok(())
     } else {
         Err(Error::from_str(
