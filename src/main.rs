@@ -7,12 +7,10 @@ use toml;
 #[derive(Debug, serde::Deserialize)]
 struct Config {
     repositories: Vec<RepositoryConfig>,
-    config_base_path: Vec<ConfigBasePath>,
+    config_base_path: String,
+    log_path: String,
 }
-#[derive(Debug, serde::Deserialize)]
-struct ConfigBasePath {
-    path: String,
-}
+
 #[derive(Debug, serde::Deserialize)]
 struct RepositoryConfig {
     path: String,
@@ -62,4 +60,12 @@ fn fetch(repo_path: &str, branch: &str) -> Result<(), Error> {
 
 // I moved the pull function inside the main function to feel more confident and to make it easier
 // to pass arguments and log the corresponding output.
-fn main() {}
+fn main() {
+    let config_data = fs::read_to_string("config.toml")
+        .expect("Unable to read TOML file. Is the correct path, isn't it?");
+    let config: Config =
+        toml::de::from_str(&config_data).expect("Unable to read single configurations.");
+    let config_base_path: String = config.config_base_path;
+    let logfiles_path: String = config.log_path;
+    println!("{:?}", logfiles_path);
+}
