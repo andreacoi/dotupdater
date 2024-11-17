@@ -1,0 +1,9 @@
+[package]
+name = "dotupdater"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+git2 = "0.16"
+toml = "0.5"
+
