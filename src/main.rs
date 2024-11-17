@@ -2,6 +2,9 @@ use git2::{Error, FetchOptions, RemoteCallbacks, Repository};
 use serde::Deserialize;
 use std::fs;
 use std::io::Write;
+use std::net::TcpStream;
+use std::thread::sleep;
+use std::time::Duration;
 use toml;
 
 #[derive(Debug, serde::Deserialize)]
@@ -58,14 +61,40 @@ fn fetch(repo_path: &str, branch: &str) -> Result<(), Error> {
     }
 }
 
+// check internet connection by querying Google DNS. Return a boolean if connected.
+fn check_internet_connection() -> bool {
+    TcpStream::connect("8.8.8.8:53").is_ok()
+}
+
+// function to implement an infinite cycle if the computer is connected. while the computer is not
+// connected sleep for 3 second then re-check the connection.
+fn wait_for_connection() {
+    while !check_internet_connection() {
+        sleep(Duration::from_secs(3));
+    }
+}
+
 // I moved the pull function inside the main function to feel more confident and to make it easier
 // to pass arguments and log the corresponding output.
 fn main() {
+    // read_to_string helps me to convert a stream from a file in a text to be read.
     let config_data = fs::read_to_string("config.toml")
         .expect("Unable to read TOML file. Is the correct path, isn't it?");
+    // deserialize config_data starting from a simple string.
     let config: Config =
         toml::de::from_str(&config_data).expect("Unable to read single configurations.");
+    // bind config.config.config_base_path to the variable config_base_path
     let config_base_path: String = config.config_base_path;
+    // same story for logfiles_path
     let logfiles_path: String = config.log_path;
-    println!("{:?}", logfiles_path);
+    // create log file if not exists, otherwise append logs to that file.
+    let mut log_file = fs::OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(logfiles_path)
+        .expect("Cannot open log file.");
+    // iterate over each repo in config files
+    for repo_config in &config.repositories {}
+    // check_internet_connection
+    wait_for_connection();
 }
