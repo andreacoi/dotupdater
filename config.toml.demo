@@ -1,0 +1,12 @@
+config_base_path = "PUT HERE YOUR ABSOLUTE PATH FOR DOTFILES"
+log_path = "PUT HERE YOUR ABSOLUTE FOR LOG FOLDER"
+
+[[repositories]]
+path = "repo1"
+branch = "main"
+
+[[repositories]]
+path = "repo2"
+branch = "develop"
+# ... and so on.
+
