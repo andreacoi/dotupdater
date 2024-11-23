@@ -29,7 +29,9 @@ pub mod init {
 
     // this function create all the enviroment.
     pub fn initialize() {
-        // read app config file - located in user dir/.config/dotupdater
+        let configdir = get_config_dir().unwrap().to_str();
+        let dufolder: &str = APP_NAME;
+        fs::create_dir(configdir + dufolder); // read app config file - located in user dir/.config/dotupdater
     }
 
     // create some config file in order to suppress errors
