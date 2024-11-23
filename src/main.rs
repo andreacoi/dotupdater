@@ -1,11 +1,11 @@
 use chrono::prelude::*;
+use dirs::{self, home_dir};
 use git2::build::CheckoutBuilder;
 use git2::{Error, FetchOptions, RemoteCallbacks, Repository};
-use serde::Deserialize;
-use std::fmt::write;
 use std::fs;
 use std::io::Write;
 use std::net::TcpStream;
+use std::path::{Path, PathBuf};
 use std::thread::sleep;
 use std::time::Duration;
 use toml;
@@ -83,7 +83,7 @@ fn pull(repo_path: &str, branch: &str) -> Result<(), Error> {
         return Ok(());
     }
     if analysis.is_fast_forward() {
-        let mut branch = repo.find_branch(branch, git2::BranchType::Local)?;
+        let branch = repo.find_branch(branch, git2::BranchType::Local)?;
         let mut branch_ref = branch.into_reference();
         branch_ref.set_target(fetch_commit.id(), "Fast Forward")?;
         // force the checkout of a new version
@@ -111,6 +111,7 @@ fn wait_for_connection() {
         sleep(Duration::from_secs(3));
     }
 }
+
 // create useful function for log. returns a string to be placed in log file.
 fn get_task_datetime() -> String {
     let local: DateTime<Local> = Local::now();
@@ -118,9 +119,21 @@ fn get_task_datetime() -> String {
     formatted_date
 }
 
-// I moved the pull function inside the main function to feel more confident and to make it easier
+fn get_config_dir() -> Option<PathBuf> {
+    let config_dir = dirs::config_dir();
+    config_dir
+}
+
+fn get_user_home_dir() -> Option<PathBuf> {
+    let homedir: Option<PathBuf> = dirs::home_dir();
+    homedir
+}
+
+// I moved the pull function outside the main function to feel more confident and to make it easier
 // to pass arguments and log the corresponding output.
 fn main() {
+    let config_dir = get_config_dir().expect("Can't find config user dir.");
+    let homedir = get_user_home_dir().expect("Can't find home dir. Sure your OS is OK?");
     // read_to_string helps me to convert a stream from a file in a text to be read.
     let config_data = fs::read_to_string("config.toml")
         .expect("Unable to read TOML file. Is the correct path, isn't it?");
