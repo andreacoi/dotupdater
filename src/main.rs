@@ -1,7 +1,10 @@
 use chrono::prelude::*;
+use dirs::config_dir;
 use dirs::{self};
 use dotupdater::init;
 use dotupdater::logger;
+use dotupdater::Config;
+use dotupdater::RepositoryConfig;
 use git2::build::CheckoutBuilder;
 use git2::{Error, FetchOptions, RemoteCallbacks, Repository};
 use std::fs;
@@ -11,19 +14,6 @@ use std::path::{Path, PathBuf};
 use std::thread::sleep;
 use std::time::Duration;
 use toml;
-
-#[derive(Debug, serde::Deserialize)]
-struct Config {
-    repositories: Vec<RepositoryConfig>,
-    config_base_path: String,
-    log_path: String,
-}
-
-#[derive(Debug, serde::Deserialize)]
-struct RepositoryConfig {
-    path: String,
-    branch: String,
-}
 
 // Function to be used as a callback for fetch_options. It is used for authentication and relies
 // on the system's SSH agent (provided it is enabled). The remote.fetch() function, in fact,
@@ -145,9 +135,8 @@ fn main() {
     let config: Config =
         toml::de::from_str(&config_data).expect("Unable to read single configurations.");
     // bind config.config.config_base_path to the variable config_base_path
-    let config_base_path: String = config.config_base_path;
+    let config_base_path: String = config_dir;
     // same story for logfiles_path
-    let logfiles_path: String = format!("{}/{}", config.log_path, "logfile.log");
     // create log file if not exists, otherwise append logs to that file.
     let mut log_file = fs::OpenOptions::new()
         .create(true)
