@@ -1,5 +1,7 @@
 use chrono::prelude::*;
-use dirs::{self, home_dir};
+use dirs::{self};
+use dotupdater::init;
+use dotupdater::logger;
 use git2::build::CheckoutBuilder;
 use git2::{Error, FetchOptions, RemoteCallbacks, Repository};
 use std::fs;
@@ -132,7 +134,9 @@ fn get_user_home_dir() -> Option<PathBuf> {
 // I moved the pull function outside the main function to feel more confident and to make it easier
 // to pass arguments and log the corresponding output.
 fn main() {
+    // retrieves config_dir
     let config_dir = get_config_dir().expect("Can't find config user dir.");
+    // retrieves home_dir
     let homedir = get_user_home_dir().expect("Can't find home dir. Sure your OS is OK?");
     // read_to_string helps me to convert a stream from a file in a text to be read.
     let config_data = fs::read_to_string("config.toml")
