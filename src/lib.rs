@@ -10,6 +10,27 @@ pub struct RepositoryConfig {
 }
 
 pub mod init {
+    use std::fs;
+    use std::io::Write;
+    use std::path::PathBuf;
+    use toml;
+
+    const APP_NAME: &str = "dotupdater";
+
+    fn get_config_dir() -> Option<PathBuf> {
+        let config_dir = dirs::config_dir();
+        config_dir
+    }
+
+    fn get_user_home_dir() -> Option<PathBuf> {
+        let homedir: Option<PathBuf> = dirs::home_dir();
+        homedir
+    }
+
+    // this function create all the enviroment.
+    pub fn initialize() {
+        // read app config file - located in user dir/.config/dotupdater
+    }
 
     // create some config file in order to suppress errors
     // read config file
@@ -19,6 +40,14 @@ pub mod init {
 }
 
 pub mod logger {
+    use chrono::prelude::*;
+    // create useful function for log. returns a string to be placed in log file.
+
+    fn get_task_datetime() -> String {
+        let local: DateTime<Local> = Local::now();
+        let formatted_date = local.format("%Y-%m-%d %H:%M:%S").to_string();
+        formatted_date
+    }
     // log all events regarding questions like folders, files...
     // log fetch
     // log pull
@@ -67,7 +96,7 @@ pub mod github_utils {
     // (by reading the .git folder) via repo_path, retrieves the origin, and performs the fetch
     // on the branch specified in &branch.
 
-    fn fetch(repo_path: &str, branch: &str) -> Result<(), Error> {
+    pub fn fetch(repo_path: &str, branch: &str) -> Result<(), Error> {
         let repo = Repository::open(repo_path)?;
         let mut remote = repo.find_remote("origin")?;
 
@@ -88,7 +117,7 @@ pub mod github_utils {
     }
 
     // pull function - useful only when fetch returns an error
-    fn pull(repo_path: &str, branch: &str) -> Result<(), Error> {
+    pub fn pull(repo_path: &str, branch: &str) -> Result<(), Error> {
         let repo = Repository::open(repo_path)?;
         let mut remote = repo.find_remote("origin")?;
         // create a FetchOption object in order to perform auth
