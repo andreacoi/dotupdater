@@ -29,18 +29,26 @@ pub mod init {
 
     // this function create all the enviroment.
     pub fn initialize() {
-        let configdir = get_config_dir().unwrap().to_str();
+        // get config_dir by enviroment
+        let opt_path: String = get_config_dir().unwrap().to_str().unwrap().to_owned();
+        // get program folder - dotupdater in this case - e.g. /home/johndoe/.config/dotupdater
         let dufolder: &str = APP_NAME;
-        fs::create_dir(configdir + dufolder); // read app config file - located in user dir/.config/dotupdater
+        // build complete url to be passed to create folder function
+        let complete_app_path: String = format!("{}/{}", &opt_path, &dufolder);
+        // function to create program folder
+        match fs::create_dir_all(complete_app_path) {
+            Ok(()) => print!(""), // call logger - some like... created folder dotupdater
+            // in config_folder... BLABLABLA
+            Err(e) => println!("{:?}", &e), //call logger - some like... unable to create
+                                            // config folder because of e.
+        }
+        // create some config file in order to suppress errors
+        // read config file
+        // get home_dir
+        // get config_dir
+        // get log_dir
     }
-
-    // create some config file in order to suppress errors
-    // read config file
-    // get home_dir
-    // get config_dir
-    // get log_dir
 }
-
 pub mod logger {
     use chrono::prelude::*;
     // create useful function for log. returns a string to be placed in log file.
