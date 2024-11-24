@@ -12,7 +12,9 @@ pub struct RepositoryConfig {
 pub mod init {
     use std::fs::{self, OpenOptions};
     use std::io::{self, Write};
-    use std::path::PathBuf;
+    use std::path::{Path, PathBuf};
+
+    use toml::ser::Error;
 
     use crate::logger::logevent;
 
@@ -29,23 +31,33 @@ pub mod init {
         path: String,
         filename: String,
         content: String,
-    ) -> std::io::Result<()> {
+    ) -> Result<(), String> {
         // create complete path concatenating String path and String filename
         let complete_file_path = format!("{}/{}", &path, &filename);
         let file = OpenOptions::new()
             .write(true)
             .create_new(true)
             .open(&complete_file_path);
-        match file {
-            Ok(mut file) => {
-                println!("created file in {}", &complete_file_path);
-                write!(file, "{}", &content)?;
-            }
-            Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
-                println!("file AlreadyExists");
-            }
-            Err(e) => {
-                println!("generic errors in file creation: {}", e);
+
+        if Path::new(&complete_file_path).exists() {
+            return Err(format!("File {} already exists.", &complete_file_path));
+        } else {
+            match file {
+                Ok(mut file) => {
+                    write!(file, "{}", &content);
+                }
+                Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
+                    logevent(
+                        String::from("Notice: File already exists, you can use app modifying files in the proper directory."),
+                        crate::logger::EventType::N(String::from("Notice")),
+                    );
+                }
+                Err(e) => {
+                    logevent(
+                        String::from("Error: File cannot be created in the specified directory."),
+                        crate::logger::EventType::E(String::from("Error")),
+                    );
+                }
             }
         }
 
@@ -65,6 +77,7 @@ pub mod init {
         // build complete log path to be passed to create folder function
         let complete_log_path: String = format!("{}/{}_logs", &logpath, &dufolder);
         // function to create log folder and log file
+
         match fs::create_dir_all(&complete_log_path) {
             Ok(()) => {
                 create_base_files_with_content(
@@ -92,7 +105,7 @@ pub mod init {
                         crate::logger::EventType::N(String::from("Notice")),
                     ),
                     Err(e) => logevent(
-                        String::from("The file cannot be created for this reason: {e}"),
+                        format!("The file cannot be created for this reason: {}", e),
                         crate::logger::EventType::E(String::from("Error")),
                     ),
                 };
