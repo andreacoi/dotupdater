@@ -107,7 +107,7 @@ pub mod logger {
     // [W] Warning
     // [II] Notice
     // [E] Error
-    enum EventType {
+    pub enum EventType {
         I(String),
         W(String),
         N(String),
