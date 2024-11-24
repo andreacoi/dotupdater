@@ -10,8 +10,10 @@ pub struct RepositoryConfig {
 }
 
 pub mod init {
-    use std::fs;
-    use std::io::Write;
+    use std::fmt::write;
+    use std::fs::File;
+    use std::fs::{self, OpenOptions};
+    use std::io::{self, Write};
     use std::path::PathBuf;
     use toml;
 
@@ -27,21 +29,66 @@ pub mod init {
         homedir
     }
 
+    fn create_base_files_with_content(
+        path: String,
+        filename: String,
+        content: String,
+    ) -> std::io::Result<()> {
+        // create complete path concatenating String path and String filename
+        let complete_file_path = format!("{}/{}", &path, &filename);
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&complete_file_path);
+        match file {
+            Ok(mut file) => {
+                println!("created file in {}", &complete_file_path);
+                write!(file, "{}", &content)?;
+            }
+            Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
+                println!("file AlreadyExists");
+            }
+            Err(e) => {
+                println!("generic errors in file creation: {}", e);
+            }
+        }
+
+        Ok(())
+    }
+
     // this function create all the enviroment.
     pub fn initialize() {
         // get config_dir by enviroment
         let opt_path: String = get_config_dir().unwrap().to_str().unwrap().to_owned();
         // get program folder - dotupdater in this case - e.g. /home/johndoe/.config/dotupdater
         let dufolder: &str = APP_NAME;
-        // build complete url to be passed to create folder function
+        // build complete path to be passed to create folder function
         let complete_app_path: String = format!("{}/{}", &opt_path, &dufolder);
-        // function to create program folder
-        match fs::create_dir_all(complete_app_path) {
-            Ok(()) => print!(""), // call logger - some like... created folder dotupdater
+        // get logpath, set statically and of imperium to /var/tmp/
+        let logpath: String = String::from("/var/tmp/");
+        // build complete log path to be passed to create folder function
+        let complete_log_path: String = format!("{}/{}_logs", &logpath, &dufolder);
+        // function to create log folder and log file
+        match fs::create_dir_all(&complete_log_path) {
+            Ok(()) => {
+                create_base_files_with_content(
+                    complete_log_path,
+                    String::from("dotupdater.log"),
+                    String::from("Created log file for the first time."),
+                );
+            }
+            Err(e) => println!("Unable to create log folder for some reason: {e}"),
+        }
+        // function to create program config folder
+        match fs::create_dir_all(&complete_app_path) {
+            Ok(()) => {
+
+            } // call logger - some like... created folder dotupdater
             // in config_folder... BLABLABLA
             Err(e) => println!("{:?}", &e), //call logger - some like... unable to create
                                             // config folder because of e.
         }
+
         // create some config file in order to suppress errors
         // read config file
         // get home_dir
@@ -57,6 +104,28 @@ pub mod logger {
         let local: DateTime<Local> = Local::now();
         let formatted_date = local.format("%Y-%m-%d %H:%M:%S").to_string();
         formatted_date
+    }
+
+    enum EventType {
+        I(String),
+        W(String),
+        N(String),
+        E(String),
+    }
+
+    pub fn logevent(message: String, type: String) -> std::io::Result<()> {
+        // retrieves datetime from get_task_datetime
+        let info_string = EventType::I(String::from("[I]"));
+        let warning_string = EventType::W(String::from("[W]"));
+        let notice_string = EventType::N(String::from("[!!]"));
+        let error_string = EventType::E(String::from("[!!]"));
+        // type can be:
+        // [I] [W] [!] [E]
+        // [I] Info - simple Info
+        // [W] Warning
+        // [II] Notice
+        // [E] Error
+
     }
     // log all events regarding questions like folders, files...
     // log fetch
