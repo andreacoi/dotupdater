@@ -64,10 +64,21 @@ pub mod init {
 
         Ok(())
     }
+    
+    // fn precheck?
+    // if config == true && log == true - split if into precheck
+        // not initialize_config
+        // not initialize_log
+    // else
+        // initialize element that aren't initialized
 
     // this function create all the enviroment.
     pub fn initialize() {
         // get config_dir by enviroment
+        // !!!! todo: manage existence of config folder and config file
+        // tip: if the folder does not exist then even the file can't exist (logically)
+        // fn create_config_folder -> Ok(folder_name)
+        // fn create_config_file -> Ok(())
         let opt_path: String = get_config_dir().unwrap().to_str().unwrap().to_owned();
         // get program folder - dotupdater in this case - e.g. /home/johndoe/.config/dotupdater
         let dufolder: &str = APP_NAME;
@@ -147,6 +158,10 @@ pub mod logger {
         N(String),
         E(String),
     }
+    // !!!! todo: manage existence of log folder and log file
+    // tip: if the folder does not exist then even the file can't exist (logically)
+    // fn create_log_folder -> Ok(folder_name)
+    // fn create_log_file -> Ok(())
     // function to log all events in the lifecycle of the app.
     pub fn logevent(message: String, event_type: EventType) -> std::io::Result<()> {
         // retrieves datetime from get_task_datetime
