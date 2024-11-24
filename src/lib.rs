@@ -14,6 +14,7 @@ pub mod init {
     use std::io::{self, Write};
     use std::path::{Path, PathBuf};
 
+    use chrono::format;
     use toml::ser::Error;
 
     use crate::logger::logevent;
@@ -77,7 +78,6 @@ pub mod init {
         // build complete log path to be passed to create folder function
         let complete_log_path: String = format!("{}/{}_logs", &logpath, &dufolder);
         // function to create log folder and log file
-
         match fs::create_dir_all(&complete_log_path) {
             Ok(()) => {
                 create_base_files_with_content(
@@ -91,23 +91,20 @@ pub mod init {
         // function to create program config folder
         match fs::create_dir_all(&complete_app_path) {
             Ok(_) => {
-                logevent(
-                    String::from("Created app folder in $HOME/.config/dotupdater/"),
-                    crate::logger::EventType::I(String::from("Info")),
-                );
                 match create_base_files_with_content(
                     complete_app_path,
                     String::from(CONFIG_FILE),
                     String::from(BLUEPRINT_FILE),
                 ) {
-                    Ok(_) => logevent(
-                        String::from("Created blueprint file, modify it in order to use correctly"),
-                        crate::logger::EventType::N(String::from("Notice")),
-                    ),
-                    Err(e) => logevent(
-                        format!("The file cannot be created for this reason: {}", e),
-                        crate::logger::EventType::E(String::from("Error")),
-                    ),
+                    Ok(_) => {
+                        logevent(
+                            String::from(
+                                "Created blueprint file, modify it in order to use correctly",
+                            ),
+                            crate::logger::EventType::N(String::from("Notice")),
+                        );
+                    }
+                    Err(_) => println!("test"),
                 };
             }
 
