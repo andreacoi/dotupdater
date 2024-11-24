@@ -10,23 +10,15 @@ pub struct RepositoryConfig {
 }
 
 pub mod init {
-    use std::fmt::write;
-    use std::fs::File;
     use std::fs::{self, OpenOptions};
     use std::io::{self, Write};
     use std::path::PathBuf;
-    use toml;
 
     const APP_NAME: &str = "dotupdater";
 
     fn get_config_dir() -> Option<PathBuf> {
         let config_dir = dirs::config_dir();
         config_dir
-    }
-
-    fn get_user_home_dir() -> Option<PathBuf> {
-        let homedir: Option<PathBuf> = dirs::home_dir();
-        homedir
     }
 
     fn create_base_files_with_content(
@@ -36,7 +28,7 @@ pub mod init {
     ) -> std::io::Result<()> {
         // create complete path concatenating String path and String filename
         let complete_file_path = format!("{}/{}", &path, &filename);
-        let mut file = OpenOptions::new()
+        let file = OpenOptions::new()
             .write(true)
             .create_new(true)
             .open(&complete_file_path);
@@ -81,9 +73,7 @@ pub mod init {
         }
         // function to create program config folder
         match fs::create_dir_all(&complete_app_path) {
-            Ok(()) => {
-
-            } // call logger - some like... created folder dotupdater
+            Ok(()) => {} // call logger - some like... created folder dotupdater
             // in config_folder... BLABLABLA
             Err(e) => println!("{:?}", &e), //call logger - some like... unable to create
                                             // config folder because of e.
@@ -98,34 +88,47 @@ pub mod init {
 }
 pub mod logger {
     use chrono::prelude::*;
-    // create useful function for log. returns a string to be placed in log file.
+    use std::fs::OpenOptions;
+    use std::io::Write;
 
+    // set a constant for logfile - CREATED IN initialize() function
+    const LOGFILE: &str = "/var/tmp/dotupdater_logs/dotupdater.log";
+
+    // function to get datetime in a String format
+    // Returns a string to be placed in log file.
     fn get_task_datetime() -> String {
         let local: DateTime<Local> = Local::now();
         let formatted_date = local.format("%Y-%m-%d %H:%M:%S").to_string();
         formatted_date
     }
-
+    // create an enum with event types.
+    // [I] [W] [!] [E]
+    // [I] Info - simple Info
+    // [W] Warning
+    // [II] Notice
+    // [E] Error
     enum EventType {
         I(String),
         W(String),
         N(String),
         E(String),
     }
-
-    pub fn logevent(message: String, type: String) -> std::io::Result<()> {
+    // function to log all events in the lifecycle of the app.
+    pub fn logevent(message: String, event_type: EventType) -> std::io::Result<()> {
         // retrieves datetime from get_task_datetime
-        let info_string = EventType::I(String::from("[I]"));
-        let warning_string = EventType::W(String::from("[W]"));
-        let notice_string = EventType::N(String::from("[!!]"));
-        let error_string = EventType::E(String::from("[!!]"));
-        // type can be:
-        // [I] [W] [!] [E]
-        // [I] Info - simple Info
-        // [W] Warning
-        // [II] Notice
-        // [E] Error
+        let datetime_now = get_task_datetime();
+        let event_prefix = match event_type {
+            EventType::W(_) => String::from("[W]"),
+            EventType::I(_) => String::from("[I]"),
+            EventType::N(_) => String::from("[!!]"),
+            EventType::E(_) => String::from("[E]"),
+        };
 
+        let log_message = format!("{} - {} - {}", datetime_now, event_prefix, message);
+
+        let mut file = OpenOptions::new().append(true).create(true).open(LOGFILE)?;
+        writeln!(file, "{}", log_message)?;
+        Ok(())
     }
     // log all events regarding questions like folders, files...
     // log fetch
