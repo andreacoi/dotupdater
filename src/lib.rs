@@ -14,7 +14,11 @@ pub mod init {
     use std::io::{self, Write};
     use std::path::PathBuf;
 
+    use crate::logger::logevent;
+
     const APP_NAME: &str = "dotupdater";
+    const CONFIG_FILE: &str = "config.toml";
+    const BLUEPRINT_FILE: &str = include_str!("../config.toml.demo");
 
     fn get_config_dir() -> Option<PathBuf> {
         let config_dir = dirs::config_dir();
@@ -73,8 +77,28 @@ pub mod init {
         }
         // function to create program config folder
         match fs::create_dir_all(&complete_app_path) {
-            Ok(()) => {} // call logger - some like... created folder dotupdater
-            // in config_folder... BLABLABLA
+            Ok(_) => {
+                logevent(
+                    String::from("Created app folder in $HOME/.config/dotupdater/"),
+                    crate::logger::EventType::I(String::from("Info")),
+                );
+                match create_base_files_with_content(
+                    complete_app_path,
+                    String::from(CONFIG_FILE),
+                    String::from(BLUEPRINT_FILE),
+                ) {
+                    Ok(_) => logevent(
+                        String::from("Created blueprint file, modify it in order to use correctly"),
+                        crate::logger::EventType::N(String::from("Notice")),
+                    ),
+                    Err(e) => logevent(
+                        String::from("The file cannot be created for this reason: {e}"),
+                        crate::logger::EventType::E(String::from("Error")),
+                    ),
+                };
+            }
+
+            // n config_folder... BLABLABLA
             Err(e) => println!("{:?}", &e), //call logger - some like... unable to create
                                             // config folder because of e.
         }
