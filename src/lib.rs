@@ -23,16 +23,18 @@ pub mod appvars {
         config_dir
     }
 
+    // function to retrieve log path WITHOUT LOG FILE
     pub fn get_complete_log_file_path() -> String {
-        let complete_log_file_path: String = format!("{}{}", LOGDIR, LOGFILE);
+        let complete_log_file_path: String = format!("{}", LOGDIR);
         complete_log_file_path
     }
 
+    // function to retrieve config path WITHOUT CONFIG FILE
     pub fn get_complete_config_file_path() -> String {
         let complete_config_file_path: String = format!(
             "{}/{}",
             get_config_dir().unwrap().to_str().unwrap().to_owned(),
-            CONFIG_FILE
+            APP_NAME
         );
         complete_config_file_path
     }
@@ -45,42 +47,16 @@ pub mod init {
     use chrono::format;
     use toml::ser::Error;
 
+    use crate::appvars;
     use crate::logger::logevent;
 
-    fn create_base_files_with_content(
+    fn create_base_config_path(
         path: String,
         filename: String,
         content: String,
     ) -> Result<(), String> {
-        // create complete path concatenating String path and String filename
-        let complete_file_path = format!("{}/{}", &path, &filename);
-        let file = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&complete_file_path);
-
-        if Path::new(&complete_file_path).exists() {
-            return Err(format!("File {} already exists.", &complete_file_path));
-        } else {
-            match file {
-                Ok(mut file) => {
-                    write!(file, "{}", &content);
-                }
-                Err(e) if e.kind() == io::ErrorKind::AlreadyExists => {
-                    logevent(
-                        String::from("Notice: File already exists, you can use app modifying files in the proper directory."),
-                        crate::logger::EventType::N(String::from("Notice")),
-                    );
-                }
-                Err(e) => {
-                    logevent(
-                        String::from("Error: File cannot be created in the specified directory."),
-                        crate::logger::EventType::E(String::from("Error")),
-                    );
-                }
-            }
-        }
-
+        // create config folder --> return Ok() if the folder can be created
+        // else return Err()
         Ok(())
     }
 
