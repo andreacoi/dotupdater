@@ -43,20 +43,25 @@ pub mod appvars {
 pub mod init {
     use std::fs::{self, OpenOptions};
     use std::io::{self, Write};
+    use std::path::{Path, PathBuf};
 
     use chrono::format;
     use toml::ser::Error;
 
     use crate::appvars;
-    use crate::logger::logevent;
+    use crate::logger::{self, logevent};
 
-    fn create_base_config_path(
-        path: String,
-        filename: String,
-        content: String,
-    ) -> Result<(), String> {
+    fn create_base_config_path() -> Result<(), String> {
         // create config folder --> return Ok() if the folder can be created
-        // else return Err()
+        let complete_config_file_path = appvars::get_complete_config_file_path();
+        // if the config folder does not exist create it
+        if !Path::new(&complete_config_file_path).exists() {
+            fs::create_dir(&complete_config_file_path)
+                .map_err(|err| format!("Config folder can't be created. Reason: {}", err))?;
+            println!("Config folder created successfully!");
+        } else {
+            println!("Config folder already exists");
+        }
         Ok(())
     }
 
@@ -69,66 +74,20 @@ pub mod init {
 
     // this function create all the enviroment.
     pub fn initialize() {
+
         // get config_dir by enviroment
         // !!!! todo: manage existence of config folder and config file
         // tip: if the folder does not exist then even the file can't exist (logically)
         // fn create_config_folder -> Ok(folder_name)
         // fn create_config_file -> Ok(())
         // get program folder - dotupdater in this case - e.g. /home/johndoe/.config/dotupdater
-        let dufolder: &str = APP_NAME;
-        // build complete path to be passed to create folder function
-        let complete_app_path: String = format!("{}/{}", &opt_path, &dufolder);
-        // get logpath, set statically and of imperium to /var/tmp/
-        let logpath: String = String::from("/var/tmp/");
-        // build complete log path to be passed to create folder function
-        let complete_log_path: String = format!("{}/{}_logs", &logpath, &dufolder);
-        // function to create log folder and log file
-        match fs::create_dir_all(&complete_log_path) {
-            Ok(()) => {
-                create_base_files_with_content(
-                    complete_log_path,
-                    String::from("dotupdater.log"),
-                    String::from("Created log file for the first time."),
-                );
-            }
-            Err(e) => println!("Unable to create log folder for some reason: {e}"),
-        }
-        // function to create program config folder
-        match fs::create_dir_all(&complete_app_path) {
-            Ok(_) => {
-                match create_base_files_with_content(
-                    complete_app_path,
-                    String::from(CONFIG_FILE),
-                    String::from(BLUEPRINT_FILE),
-                ) {
-                    Ok(_) => {
-                        logevent(
-                            String::from(
-                                "Created blueprint file, modify it in order to use correctly",
-                            ),
-                            crate::logger::EventType::N(String::from("Notice")),
-                        );
-                    }
-                    Err(_) => println!("test"),
-                };
-            }
-
-            // n config_folder... BLABLABLA
-            Err(e) => println!("{:?}", &e), //call logger - some like... unable to create
-                                            // config folder because of e.
-        }
-
-        // create some config file in order to suppress errors
-        // read config file
-        // get home_dir
-        // get config_dir
-        // get log_dir
     }
 }
 
 pub mod logger {
+    use crate::appvars;
     use chrono::prelude::*;
-    use std::fs::OpenOptions;
+    use std::fs::{self, OpenOptions};
     use std::io::Write;
     use std::path::{Path, PathBuf};
 
@@ -138,6 +97,21 @@ pub mod logger {
         let formatted_date = local.format("%Y-%m-%d %H:%M:%S").to_string();
         formatted_date
     }
+
+    fn create_base_logfiles_path() -> Result<(), String> {
+        // create config folder --> return Ok() if the folder can be created
+        let complete_log_file_path = appvars::get_complete_log_file_path();
+        // if the config folder does not exist create it
+        if !Path::new(&complete_log_file_path).exists() {
+            fs::create_dir(&complete_log_file_path)
+                .map_err(|err| format!("Log folder can't be created. Reason: {}", err))?;
+            println!("Log folder created successfully!");
+        } else {
+            println!("Log folder already exists");
+        }
+        Ok(())
+    }
+
     // create an enum with event types.
     // [I] [W] [!] [E]
     // [I] Info - simple Info
@@ -156,14 +130,6 @@ pub mod logger {
     // fn create_log_file -> Ok(())
     // function to log all events in the lifecycle of the app.
 
-    pub fn initialize_log_file() -> bool {
-        let logfile = crate::appvars::get_complete_log_file_path();
-        if Path::new(&logfile).exists() == true {
-            true
-        }
-        false
-    }
-
     pub fn logevent(message: String, event_type: EventType) -> std::io::Result<()> {
         // retrieves datetime from get_task_datetime
         let datetime_now = get_task_datetime();
@@ -176,7 +142,10 @@ pub mod logger {
 
         let log_message = format!("{} - {} - {}", datetime_now, event_prefix, message);
 
-        let mut file = OpenOptions::new().append(true).create(true).open(LOGFILE)?;
+        let mut file = OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(appvars::LOGFILE)?;
         writeln!(file, "{}", log_message)?;
         Ok(())
     }
