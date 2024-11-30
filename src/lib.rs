@@ -112,6 +112,23 @@ pub mod logger {
         Ok(())
     }
 
+    fn create_log_file() -> Result<(), String> {
+        let file_path = format!(
+            "{}/{}",
+            appvars::get_complete_log_file_path(),
+            appvars::LOGFILE
+        );
+        if !Path::new(&file_path).exists() {
+            let mut log_file = OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(&file_path);
+        } else {
+            println!("Log file already exists");
+        }
+        Ok(())
+    }
+
     // create an enum with event types.
     // [I] [W] [!] [E]
     // [I] Info - simple Info
@@ -130,7 +147,11 @@ pub mod logger {
     // fn create_log_file -> Ok(())
     // function to log all events in the lifecycle of the app.
 
-    pub fn logevent(message: String, event_type: EventType) -> std::io::Result<()> {
+    pub fn logevent(
+        file_path: String,
+        message: String,
+        event_type: EventType,
+    ) -> std::io::Result<()> {
         // retrieves datetime from get_task_datetime
         let datetime_now = get_task_datetime();
         let event_prefix = match event_type {
@@ -145,7 +166,7 @@ pub mod logger {
         let mut file = OpenOptions::new()
             .append(true)
             .create(true)
-            .open(appvars::LOGFILE)?;
+            .open(file_path)?;
         writeln!(file, "{}", log_message)?;
         Ok(())
     }
