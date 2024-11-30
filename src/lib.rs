@@ -74,7 +74,22 @@ pub mod init {
 
     // this function create all the enviroment.
     pub fn initialize() {
+        // create log folder
+        logger::create_base_logfiles_path();
+        // create log file
+        logger::create_log_file();
+        let logfile_path = format!(
+            "{}{}",
+            appvars::get_complete_log_file_path(),
+            appvars::LOGFILE
+        );
 
+        // log starting app
+        logevent(
+            &logfile_path,
+            String::from("Starting app..."),
+            logger::EventType::I(String::from("[I]")),
+        );
         // get config_dir by enviroment
         // !!!! todo: manage existence of config folder and config file
         // tip: if the folder does not exist then even the file can't exist (logically)
@@ -91,14 +106,15 @@ pub mod logger {
     use std::io::Write;
     use std::path::{Path, PathBuf};
 
-    // Returns a string to be placed in log file.
+    // Returns a string with a date to be placed in log file.
     fn get_task_datetime() -> String {
         let local: DateTime<Local> = Local::now();
         let formatted_date = local.format("%Y-%m-%d %H:%M:%S").to_string();
         formatted_date
     }
 
-    fn create_base_logfiles_path() -> Result<(), String> {
+    // function to create log folder if it's not exist
+    pub fn create_base_logfiles_path() -> Result<(), String> {
         // create config folder --> return Ok() if the folder can be created
         let complete_log_file_path = appvars::get_complete_log_file_path();
         // if the config folder does not exist create it
@@ -111,8 +127,8 @@ pub mod logger {
         }
         Ok(())
     }
-
-    fn create_log_file() -> Result<(), String> {
+    // function to create log file if it's not exist.
+    pub fn create_log_file() -> Result<(), String> {
         let file_path = format!(
             "{}/{}",
             appvars::get_complete_log_file_path(),
@@ -148,7 +164,7 @@ pub mod logger {
     // function to log all events in the lifecycle of the app.
 
     pub fn logevent(
-        file_path: String,
+        file_path: &String,
         message: String,
         event_type: EventType,
     ) -> std::io::Result<()> {
@@ -160,13 +176,13 @@ pub mod logger {
             EventType::N(_) => String::from("[!!]"),
             EventType::E(_) => String::from("[E]"),
         };
-
         let log_message = format!("{} - {} - {}", datetime_now, event_prefix, message);
 
         let mut file = OpenOptions::new()
             .append(true)
             .create(true)
             .open(file_path)?;
+        // function to write to the file
         writeln!(file, "{}", log_message)?;
         Ok(())
     }
