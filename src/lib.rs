@@ -9,47 +9,16 @@ pub struct RepositoryConfig {
     branch: String,
 }
 
-pub mod appvars {
-    use std::path::{Path, PathBuf};
-
-    pub const APP_NAME: &str = "dotupdater";
-    pub const CONFIG_FILE: &str = "config.toml";
-    pub const BLUEPRINT_FILE: &str = include_str!("../config.toml.demo");
-    pub const LOGDIR: &str = "/var/tmp/dotupdater_logs/";
-    pub const LOGFILE: &str = "dotupdater.log";
-
-    fn get_config_dir() -> Option<PathBuf> {
-        let config_dir = dirs::config_dir();
-        config_dir
-    }
-
-    // function to retrieve log path WITHOUT LOG FILE
-    pub fn get_complete_log_file_path() -> String {
-        let complete_log_file_path: String = format!("{}", LOGDIR);
-        complete_log_file_path
-    }
-
-    // function to retrieve config path WITHOUT CONFIG FILE
-    pub fn get_complete_config_file_path() -> String {
-        let complete_config_file_path: String = format!(
-            "{}/{}",
-            get_config_dir().unwrap().to_str().unwrap().to_owned(),
-            APP_NAME
-        );
-        complete_config_file_path
-    }
-}
-
+mod appvars;
 pub mod init {
     use std::fs::{self, OpenOptions};
     use std::io::Write;
     use std::path::{Path, PathBuf};
 
-    use chrono::format;
-    use toml::ser::Error;
-
     use crate::appvars::{self, get_complete_config_file_path, CONFIG_FILE};
     use crate::logger::{self, logevent};
+    use chrono::format;
+    use toml::ser::Error;
 
     pub fn create_base_config_path() -> Result<String, String> {
         // create config folder --> return Ok() if the folder can be created
