@@ -26,3 +26,9 @@ pub fn get_complete_config_file_path() -> String {
     );
     complete_config_file_path
 }
+
+pub fn prepend_dir(dir: String) -> String {
+    let base_path: String = get_config_dir().unwrap().to_str().unwrap().to_owned();
+    let full_dir: String = format!("{}/{}", base_path, dir);
+    full_dir
+}
