@@ -1,12 +1,12 @@
 #[derive(Debug, serde::Deserialize)]
 pub struct Config {
-    repositories: Vec<RepositoryConfig>,
+    pub repositories: Vec<RepositoryConfig>,
 }
 
 #[derive(Debug, serde::Deserialize)]
 pub struct RepositoryConfig {
-    path: String,
-    branch: String,
+    pub path: String,
+    pub branch: String,
 }
 use crate::appvars::{self, get_complete_config_file_path, CONFIG_FILE};
 use std::fs::{self, OpenOptions};
