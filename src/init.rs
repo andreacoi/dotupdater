@@ -17,26 +17,25 @@ pub fn initialize() {
 
     // log starting app
     logevent(
-        &logfile_path,
         String::from("Starting app..."),
         EventType::I(String::from("[I]")),
     );
 
     match create_base_config_path() {
         Ok(message) => {
-            logevent(&logfile_path, message, EventType::I(String::from("[I]")));
+            logevent(message, EventType::I(String::from("[I]")));
         }
         Err(message) => {
-            logevent(&logfile_path, message, EventType::E(String::from("[E]")));
+            logevent(message, EventType::E(String::from("[E]")));
         }
     }
 
     match create_blueprint_config_file() {
         Ok(message) => {
-            logevent(&logfile_path, message, EventType::I(String::from("[I]")));
+            logevent(message, EventType::I(String::from("[I]")));
         }
         Err(message) => {
-            logevent(&logfile_path, message, EventType::E(String::from("[E]")));
+            logevent(message, EventType::E(String::from("[E]")));
         }
     }
 
