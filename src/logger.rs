@@ -1,4 +1,5 @@
-use crate::appvars;
+use crate::appvars::{self, LOGDIR, LOGFILE};
+use crate::ghutils::get_config_list;
 use chrono::prelude::*;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
@@ -43,6 +44,11 @@ pub fn create_log_file() -> Result<(), String> {
     Ok(())
 }
 
+fn get_logfile_path() -> String {
+    let logfile_path: String = format!("{}{}", LOGDIR, LOGFILE);
+    logfile_path
+}
+
 // create an enum with event types.
 // [I] [W] [!] [E]
 // [I] Info - simple Info
@@ -61,7 +67,7 @@ pub enum EventType {
 // fn create_log_file -> Ok(())
 // function to log all events in the lifecycle of the app.
 
-pub fn logevent(file_path: &String, message: String, event_type: EventType) -> std::io::Result<()> {
+pub fn logevent(message: String, event_type: EventType) -> std::io::Result<()> {
     // retrieves datetime from get_task_datetime
     let datetime_now = get_task_datetime();
     let event_prefix = match event_type {
@@ -75,7 +81,7 @@ pub fn logevent(file_path: &String, message: String, event_type: EventType) -> s
     let mut file = OpenOptions::new()
         .append(true)
         .create(true)
-        .open(file_path)?;
+        .open(get_logfile_path())?;
     // function to write to the file
     writeln!(file, "{}", log_message)?;
     Ok(())
