@@ -1,3 +1,17 @@
+#[derive(Debug, serde::Deserialize)]
+pub struct Config {
+    repositories: Vec<RepositoryConfig>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct RepositoryConfig {
+    path: String,
+    branch: String,
+}
+use crate::appvars::{self, get_complete_config_file_path, CONFIG_FILE};
+use std::fs::{self, OpenOptions};
+use std::io::Write;
+use std::path::Path;
 pub fn create_base_config_path() -> Result<String, String> {
     // create config folder --> return Ok() if the folder can be created
     let complete_config_file_path = get_complete_config_file_path();
