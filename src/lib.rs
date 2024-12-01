@@ -42,27 +42,61 @@ pub mod appvars {
 
 pub mod init {
     use std::fs::{self, OpenOptions};
-    use std::io::{self, Write};
+    use std::io::Write;
     use std::path::{Path, PathBuf};
 
     use chrono::format;
     use toml::ser::Error;
 
-    use crate::appvars;
+    use crate::appvars::{self, get_complete_config_file_path, CONFIG_FILE};
     use crate::logger::{self, logevent};
 
-    fn create_base_config_path() -> Result<(), String> {
+    pub fn create_base_config_path() -> Result<String, String> {
         // create config folder --> return Ok() if the folder can be created
-        let complete_config_file_path = appvars::get_complete_config_file_path();
+        let complete_config_file_path = get_complete_config_file_path();
         // if the config folder does not exist create it
         if !Path::new(&complete_config_file_path).exists() {
             fs::create_dir(&complete_config_file_path)
                 .map_err(|err| format!("Config folder can't be created. Reason: {}", err))?;
-            println!("Config folder created successfully!");
+            let message: String = String::from("Config folder created successfully");
+            return Ok(message);
         } else {
-            println!("Config folder already exists");
+            let message: String = String::from("Config folder is already in the right place.");
+            return Err(message);
         }
-        Ok(())
+    }
+
+    pub fn create_blueprint_config_file() -> Result<String, String> {
+        let config_folder_path = get_complete_config_file_path();
+        let config_file_path: String = format!("{}/{}", config_folder_path, CONFIG_FILE);
+
+        if !Path::new(&config_folder_path).exists() {
+            create_base_config_path();
+            let config_file = OpenOptions::new()
+                .append(true)
+                .create(true)
+                .open(config_file_path)
+                .map_err(|e| e.to_string())?;
+            writeln!(&config_file, "{}", appvars::BLUEPRINT_FILE).map_err(|e| e.to_string())?;
+            let message: String = String::from("config.toml file created correctly");
+            return Ok(message);
+        } else {
+            // if the folder exists verify that the config file is already in that folder.
+            // config file path = complete_file_path + filename
+            if Path::new(&config_file_path).exists() {
+                return Ok(String::from("Config file already created."));
+            } else {
+                println!("{}", &config_file_path);
+                let config_file = OpenOptions::new()
+                    .append(true)
+                    .create(true)
+                    .open(&config_file_path)
+                    .map_err(|e| e.to_string())?;
+                writeln!(&config_file, "{}", appvars::BLUEPRINT_FILE).map_err(|e| e.to_string())?;
+                let message: String = String::from("config.toml file created correctly");
+                return Ok(message);
+            }
+        }
     }
 
     // fn precheck?
@@ -90,6 +124,41 @@ pub mod init {
             String::from("Starting app..."),
             logger::EventType::I(String::from("[I]")),
         );
+
+        match create_base_config_path() {
+            Ok(message) => {
+                logevent(
+                    &logfile_path,
+                    message,
+                    logger::EventType::I(String::from("[I]")),
+                );
+            }
+            Err(message) => {
+                logevent(
+                    &logfile_path,
+                    message,
+                    logger::EventType::E(String::from("[E]")),
+                );
+            }
+        }
+
+        match create_blueprint_config_file() {
+            Ok(message) => {
+                logevent(
+                    &logfile_path,
+                    message,
+                    logger::EventType::I(String::from("[I]")),
+                );
+            }
+            Err(message) => {
+                logevent(
+                    &logfile_path,
+                    message,
+                    logger::EventType::E(String::from("[E]")),
+                );
+            }
+        }
+
         // get config_dir by enviroment
         // !!!! todo: manage existence of config folder and config file
         // tip: if the folder does not exist then even the file can't exist (logically)
@@ -135,7 +204,7 @@ pub mod logger {
             appvars::LOGFILE
         );
         if !Path::new(&file_path).exists() {
-            let mut log_file = OpenOptions::new()
+            let log_file = OpenOptions::new()
                 .append(true)
                 .create(true)
                 .open(&file_path);
