@@ -1,5 +1,8 @@
+use crate::appvars::{get_complete_config_file_path, CONFIG_FILE};
+use crate::config::{Config, RepositoryConfig};
 use git2::build::CheckoutBuilder;
 use git2::{Error, FetchOptions, RemoteCallbacks, Repository};
+use std::fs;
 
 // Function to be used as a callback for fetch_options. It is used for authentication and relies
 // on the system's SSH agent (provided it is enabled). The remote.fetch() function, in fact,
@@ -75,4 +78,19 @@ pub fn pull(repo_path: &str, branch: &str) -> Result<(), Error> {
             "Merge conflict or other reason, skipping pull",
         ))
     }
+}
+
+pub fn get_config_list() -> Config {
+    let config_file_path = get_complete_config_file_path();
+    // get complete config file path
+    let config_file: String = format!("{}/{}", config_file_path, CONFIG_FILE);
+    // read_to_string helps me to convert a stream from a file in a text to be read.
+    let config_data = match fs::read_to_string(config_file) {
+        Ok(config_data) => config_data,
+        Err(_) => String::from("Error"),
+    };
+    // deserialize config_data starting from a simple string.
+    let config: Config =
+        toml::de::from_str(&config_data).expect("Unable to read single configurations.");
+    config
 }
