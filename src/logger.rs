@@ -20,9 +20,6 @@ pub fn create_base_logfiles_path() -> Result<(), String> {
     if !Path::new(&complete_log_file_path).exists() {
         fs::create_dir(&complete_log_file_path)
             .map_err(|err| format!("Log folder can't be created. Reason: {}", err))?;
-        println!("Log folder created successfully!");
-    } else {
-        println!("Log folder already exists");
     }
     Ok(())
 }
@@ -38,8 +35,6 @@ pub fn create_log_file() -> Result<(), String> {
             .append(true)
             .create(true)
             .open(&file_path);
-    } else {
-        println!("Log file already exists");
     }
     Ok(())
 }
