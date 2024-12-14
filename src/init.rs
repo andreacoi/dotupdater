@@ -4,38 +4,36 @@
 // not initialize_log
 // else
 // initialize element that aren't initialized
-use crate::appvars::{get_complete_log_file_path, LOGFILE};
 use crate::config::{create_base_config_path, create_blueprint_config_file};
 use crate::logger::{create_base_logfiles_path, create_log_file, logevent, EventType};
 // this function create all the enviroment.
 pub fn initialize() {
     // create log folder
-    create_base_logfiles_path();
+    let _ = create_base_logfiles_path();
     // create log file
-    create_log_file();
-    let logfile_path = format!("{}{}", get_complete_log_file_path(), LOGFILE);
+    let _ = create_log_file();
 
     // log starting app
-    logevent(
+    let _ = logevent(
         String::from("Starting app..."),
         EventType::I(String::from("[I]")),
     );
 
     match create_base_config_path() {
         Ok(message) => {
-            logevent(message, EventType::I(String::from("[I]")));
+            let _ = logevent(message, EventType::I(String::from("[I]")));
         }
         Err(message) => {
-            logevent(message, EventType::E(String::from("[E]")));
+            let _ = logevent(message, EventType::E(String::from("[E]")));
         }
     }
 
     match create_blueprint_config_file() {
         Ok(message) => {
-            logevent(message, EventType::I(String::from("[I]")));
+            let _ = logevent(message, EventType::I(String::from("[I]")));
         }
         Err(message) => {
-            logevent(message, EventType::E(String::from("[E]")));
+            let _ = logevent(message, EventType::E(String::from("[E]")));
         }
     }
 

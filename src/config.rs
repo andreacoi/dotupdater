@@ -32,7 +32,7 @@ pub fn create_blueprint_config_file() -> Result<String, String> {
     let config_file_path: String = format!("{}/{}", config_folder_path, CONFIG_FILE);
 
     if !Path::new(&config_folder_path).exists() {
-        create_base_config_path();
+        let _ = create_base_config_path();
         let config_file = OpenOptions::new()
             .append(true)
             .create(true)
