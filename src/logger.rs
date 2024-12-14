@@ -1,9 +1,8 @@
 use crate::appvars::{self, LOGDIR, LOGFILE};
-use crate::ghutils::get_config_list;
 use chrono::prelude::*;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 // Returns a string with a date to be placed in log file.
 fn get_task_datetime() -> String {
@@ -31,7 +30,7 @@ pub fn create_log_file() -> Result<(), String> {
         appvars::LOGFILE
     );
     if !Path::new(&file_path).exists() {
-        let log_file = OpenOptions::new()
+        let _ = OpenOptions::new()
             .append(true)
             .create(true)
             .open(&file_path);
