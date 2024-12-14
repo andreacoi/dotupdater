@@ -1,5 +1,5 @@
 use crate::appvars::{get_complete_config_file_path, CONFIG_FILE};
-use crate::config::{Config, RepositoryConfig};
+use crate::config::Config;
 use git2::build::CheckoutBuilder;
 use git2::{Error, FetchOptions, RemoteCallbacks, Repository};
 use std::fs;
