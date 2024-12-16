@@ -15,7 +15,15 @@ fn main() {
     for repo_config in &config.repositories {
         // cycle every repo config
         // get full path of the repo - repo usually located in $HOME/.config
-        let full_path: String = prepend_dir(&repo_config.path);
+
+        // verifying that the path specified in config toml is absolute.
+        // If path is absolute (starts with /) full path is equal to path itself
+        // else prepend the config_file_path_string.
+        let mut full_path: String = prepend_dir(&repo_config.path);
+        if repo_config.path.starts_with("/") == true {
+            full_path = repo_config.path.clone();
+        }
+
         // log entering in a dir
         let _ = logevent(
             format!("Inspecting folder for a GitHub repo: {}", &full_path),
