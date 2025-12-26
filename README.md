@@ -40,3 +40,7 @@ repo2 = "https://github.com/yourusername/other-dotfiles.git"
 folder1 = "/home/username/.config"
 folder2 = "/home/username/.dotfiles"
 ```
+## Other versions
+This program is also available in a C version, that I'm coding right now here: https://github.com/andreacoi/dotupdater_c
+
+The functionalities are almost the same and I wanted to make a porting in C to have a use case in my studies.
